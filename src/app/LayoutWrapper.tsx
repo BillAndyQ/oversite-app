@@ -1,6 +1,4 @@
 "use client"
-
-
 import { SidebarInset } from '@/components/ui/sidebar'
 import React from 'react'
 import { AuthProvider } from './AuthProvider'
@@ -10,8 +8,6 @@ import { SiteHeader } from './components/site-header'
 import { usePathname } from 'next/navigation'
 
 export default function LayoutWrapper({children}: {children: React.ReactNode}) {
-
-
     const hideSidebar = usePathname().startsWith("/login")
   return (
     <>
@@ -30,7 +26,7 @@ export default function LayoutWrapper({children}: {children: React.ReactNode}) {
               <AppSidebar variant="sidebar"/>
               <SidebarInset>
                 <SiteHeader/>
-              <main className="@container/main">
+              <main className="@container/main p-4">
                 {children}
               </main>
               </SidebarInset>

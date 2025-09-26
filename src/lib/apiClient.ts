@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useCallback } from "react"
-
+import { toast } from "sonner"
 export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
 type Endpoint = {
@@ -21,9 +21,8 @@ export function useApiClient() {
 
     const request = useCallback(async (endpoint: Endpoint, options: FetchOptions = {}) => {
         if (status === "loading") {
-            // Espera a que la sesión se cargue
             await new Promise(resolve => setTimeout(resolve, 50))
-            return request(endpoint, options) // reintenta
+            return request(endpoint, options)
         }
 
         if (!session?.user?.accessToken) {
@@ -41,6 +40,10 @@ export function useApiClient() {
             },
             body: body ? JSON.stringify(body) : undefined,
         })
+
+        if(method === "PATCH" && res.ok) {
+            toast("Actualizado correctamente", {duration: 5000})
+        }
 
         if (!res.ok) {
             const error = await res.json().catch(() => ({}))

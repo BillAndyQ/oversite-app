@@ -70,9 +70,10 @@ export function DataTable<TData, TValue>({
       columnVisibility,
     },
   })
-
-  const [selectedColumn, setSelectedColumn] = React.useState<string>("n_order")
-
+  // const columns: ColumnDef<TData, unknown>[]
+  const columns_table: ColumnDef<TData, unknown>[] = table.getAllColumns().filter((col) => col.id !== "actions")
+  const [selectedColumn, setSelectedColumn] = React.useState<string>(columns_table[0].id as string)
+  
   return (
     <div>
         <div className="flex items-center py-4 gap-2">
@@ -84,10 +85,10 @@ export function DataTable<TData, TValue>({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
-          {table.getAllColumns().map((col) => (
+          {columns_table.map((col) => (
             <DropdownMenuItem
               key={col.id}
-              onClick={() => setSelectedColumn(col.id)}
+              onClick={() => setSelectedColumn(col.id as string)}
             >
               {col.id}
             </DropdownMenuItem>
