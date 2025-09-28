@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useCallback } from "react"
 import { toast } from "sonner"
+
 export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
 type Endpoint = {
@@ -41,16 +42,18 @@ export function useApiClient() {
             body: body ? JSON.stringify(body) : undefined,
         })
 
+        const data = await res.json()
+        console.log(data)
+        
         if(method === "PATCH" && res.ok) {
-            toast("Actualizado correctamente", {duration: 5000})
+            toast.success(data?.message, {duration: 5000})
         }
 
         if (!res.ok) {
-            const error = await res.json().catch(() => ({}))
-            throw new Error(error.message || "API request failed")
+            toast.error("Error al actualizar", {duration: 5000})
         }
 
-        return res.json()
+        return data
     }, [session?.user?.accessToken])
 
     return { request }

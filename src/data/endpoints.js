@@ -1,5 +1,8 @@
 
 export const ENDPOINTS = {
+    tipoCambio: {
+        get: {method: "GET", url: '/tipo-cambio'}
+    },
     auth: {
         login: {method: "POST", url: '/auth/login'},
         register: {method: "POST", url: '/auth/register'},

@@ -8,9 +8,10 @@ type Props = {
   label?: string
   currency?: string // Ej: "USD", "PEN", "EUR"
   locale?: string   // Ej: "en-US", "es-PE"
+  onChange?: (value: number) => void
 }
 
-export function FieldMoney({ name, label, currency = "USD" }: Props) {
+export function FieldMoney({ name, label, currency = "USD", onChange }: Props) {
   return (
     <FormField
       name={name.toLowerCase()}
@@ -28,10 +29,11 @@ export function FieldMoney({ name, label, currency = "USD" }: Props) {
               decimalScale={2}
               fixedDecimalScale
               allowNegative={false}
-              prefix={currency === "USD" ? "$" : ""}
+              prefix={currency === "USD" ? "$" : "S/"}
               value={field.value ?? ""}
               onValueChange={(values: any) => {
                 field.onChange(values.floatValue ?? undefined)
+                onChange?.(values.floatValue ?? undefined)
               }}
             />
           </FormControl>

@@ -27,11 +27,13 @@ import {
 export function FieldSelectEnum({
   name,
   enumObject,
-  label
+  label,
+  onChange
 }: {
   name: string
   enumObject: any
   label?: string
+  onChange?: (value: string) => void
 }) {
 
   return (
@@ -42,7 +44,10 @@ export function FieldSelectEnum({
               {label && <FormLabel>{label}</FormLabel>}
               <FormControl>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    field.onChange(value)
+                    onChange?.(value)
+                  }}
                   defaultValue={field.value}
                   value={field.value}
                 >

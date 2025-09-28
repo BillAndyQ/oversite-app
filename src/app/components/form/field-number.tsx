@@ -3,10 +3,11 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 
-export function FieldNumber({ name, label = name }: { name: string, label?: string }) {
+export function FieldNumber({ name, label = name, onChange }: { name: string, label?: string, onChange?: (value: number) => void }) {
   return (
     <FormField
       name={name.toLowerCase()}
+      
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
@@ -15,9 +16,10 @@ export function FieldNumber({ name, label = name }: { name: string, label?: stri
             type="number"
             {...field}
             value={field.value ?? ""}
-            onChange={(e) =>
+            onChange={(e) => {
               field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
-            }
+              onChange?.(Number(e.target.value))
+            }}
             placeholder="0"
           />
           </FormControl>

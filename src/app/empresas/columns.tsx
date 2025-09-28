@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export type Empresa = {
   ruc: string,
-  razon_social : string,
+  enterprise : string,
   direccion : string,
   telefono : string,
   email : string,
@@ -31,7 +31,7 @@ export const columns: ColumnDef<Empresa>[] = [
     },
   },
   createColumn("ruc", "RUC"),
-  createColumn("razon_social", "Razon Social"),
+  createColumn("enterprise", "Empresa"),
   createColumn("direccion", "Dirección"),
   createColumn("telefono", "Telefono"),
   createColumn("email", "Email"),
