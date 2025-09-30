@@ -44,6 +44,13 @@ export const ENDPOINTS = {
             get: (n_cot = "") => ({method: "GET", url: `/quotation/equipo/${n_cot}`}),
             update: (n_cot = "") => ({method: "PATCH", url: `/quotation/equipo/${n_cot}`}),
             delete: (n_cot = "") => ({method: "DELETE", url: `/quotation/equipo/${n_cot}`}),
+            unidades : {
+                list: (n_cot = "") => ({method: "GET", url: `/quotation/equipo/${n_cot}/unidad`}),
+                create: (n_cot = "") => ({method: "POST", url: `/quotation/equipo/${n_cot}/unidad`}),
+                get: (n_cot = "", id) => ({method: "GET", url: `/quotation/equipo/${n_cot}/unidad/${id}`}),
+                update: (n_cot = "", id) => ({method: "PATCH", url: `/quotation/equipo/${n_cot}/unidad/${id}`}),
+                delete: (n_cot = "", id) => ({method: "DELETE", url: `/quotation/equipo/${n_cot}/unidad/${id}`}),
+            }
         },
         personas: {
             list: {method: "GET", url: '/quotation/persona'},

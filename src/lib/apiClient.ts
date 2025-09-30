@@ -43,9 +43,14 @@ export function useApiClient() {
         })
 
         const data = await res.json()
-        console.log(data)
         
         if(method === "PATCH" && res.ok) {
+            toast.success(data?.message, {duration: 5000})
+        }
+        if(method === "POST" && res.ok) {
+            toast.success(data?.message, {duration: 5000})
+        }
+        if(method === "DELETE" && res.ok) {
             toast.success(data?.message, {duration: 5000})
         }
 

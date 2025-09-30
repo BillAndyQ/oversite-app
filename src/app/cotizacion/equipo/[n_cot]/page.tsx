@@ -20,7 +20,6 @@ import UnidadesForm from "./table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 
-
 interface TipoCambio {
     fecha: string
     compra: number
@@ -39,12 +38,12 @@ export default function Page() {
     defaultValues: getDefaults(formSchema),
   })
 
-  const {formState, handleSubmit, reset } = form
+  const {handleSubmit } = form
+  const [type_currency, setTypeCurrency] = useState("PEN")
 
   const [applyTypeCurrency, setApplyTypeCurrency] = useState(false)
 
   const [tipoCambioForm, setTipoCambioForm] = useState(0)
-  const [tipoCambioToday, setTipoCambioToday] = useState(0)
 
   const [dataTiposCambios, setDataTiposCambios] = useState<TipoCambio>({
     fecha: "",
@@ -52,18 +51,20 @@ export default function Page() {
     venta: 0
   })
 
-
   useEffect(() => {
     async function fetchData() {
       try {
         const result = await request(ENDPOINTS.cotizacion.equipos.get(n_cot as string))
         console.log(result.data)
         setData(result.data)
-        setTipoCambioForm(result.data.exchange_rate)
+        setTipoCambioForm(Number(result.data.exchange_rate))
         if(result.data.exchange_rate > 0) {
           setApplyTypeCurrency(true)
         }
         form.reset(result.data)
+        if(result.data.type_currency != null) {
+          setTypeCurrency(result.data.type_currency)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -122,9 +123,13 @@ export default function Page() {
     console.log(errors)
   }
 
-  const [type_currency, setTypeCurrency] = useState("PEN")
   const [showExchange, setShowExchange] = useState(false)
 
+  const handleSubmitFromParent = () => {
+    const form = document.getElementById("unidades-form") as HTMLFormElement;
+    if (form) form.requestSubmit();
+  };
+  
   return (
     <div>
     <Form {...form}>
@@ -170,9 +175,7 @@ export default function Page() {
         >
           Aplicar
         </Button>
-        
-
-          <span className="text-xs"> {dataTiposCambios.fecha} | Venta: {dataTiposCambios.venta} | Compra: {dataTiposCambios.compra}</span>
+          <span className="text-xs">{dataTiposCambios.fecha} | Venta: {dataTiposCambios.venta} | Compra: {dataTiposCambios.compra}</span>
       </div>
       <div className="flex items-center gap-3">
       <Checkbox
@@ -186,9 +189,11 @@ export default function Page() {
         
       </form>
     </Form>
-        <UnidadesForm type_currency={type_currency} tipoCambio={tipoCambioForm} showExchange={showExchange}/>
-
-        <Button type="submit" onClick={handleSubmit(onSubmit)}>Registrar</Button>
+        <UnidadesForm type_currency={type_currency} tipoCambio={tipoCambioForm} n_cot={n_cot as string} showExchange={showExchange}/>
+        <Button type="submit" onClick={()=>{
+          handleSubmit(onSubmit)();
+          handleSubmitFromParent()
+        }}>Registrar</Button>
     </div>
   )
 }

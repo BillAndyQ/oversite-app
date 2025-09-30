@@ -1,39 +1,42 @@
 "use client"
 
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, FieldErrors } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trash } from 'lucide-react';
-import { Form, FormField, FormItem, FormControl } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Form } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { FieldMoney } from "@/app/components/form/field-money"
 import { ServiceType } from "@/app/enums/service-type"
 import { FieldSelectEnum } from "@/app/components/form/field-select-enum"
 import { UnitType } from "@/app/enums/unit-type"
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useApiClient } from "@/lib/apiClient";
+import { ENDPOINTS } from "@/data/endpoints";
 
 const schema = z.object({
   unidades: z.array(
     z.object({
+      id: z.number().optional().nullable(),
       service_type: z.string(),
       unit_type: z.string(),
-      unit_soles: z.number(),
-      unit_dollars: z.number(),
-      unit_igv_soles: z.number(),
-      unit_igv_dollars: z.number(),
-      unit_subtotal_soles: z.number(),
-      unit_subtotal_dollars: z.number()
+      unit_soles: z.number().nullable(),
+      unit_dollars: z.number().nullable(),
+      unit_igv_soles: z.number().nullable(),
+      unit_igv_dollars: z.number().nullable(),
+      unit_subtotal_soles: z.number().nullable(),
+      unit_subtotal_dollars: z.number().nullable()
     })
   ),
 })
 
-const defValuesCell = { service_type: "", unit_type: "", unit_soles: NaN, unit_dollars: NaN, unit_igv_soles: NaN, unit_igv_dollars: NaN, unit_subtotal_soles: NaN, unit_subtotal_dollars: NaN }
+const defValuesCell = { id: null, service_type: "", unit_type: "", unit_soles: NaN, unit_dollars: NaN, unit_igv_soles: NaN, unit_igv_dollars: NaN, unit_subtotal_soles: NaN, unit_subtotal_dollars: NaN }
 
 type FormValues = z.infer<typeof schema>
 
-
-export default function UnidadesForm({type_currency, showExchange, tipoCambio}: {type_currency: string, showExchange: boolean, tipoCambio: number}) {
+export default function UnidadesForm({type_currency, showExchange, tipoCambio, n_cot}: {type_currency: string, showExchange: boolean, tipoCambio: number, n_cot: string}) {
+    const {request} = useApiClient()
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -41,7 +44,7 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
     },
   })
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update,  } = useFieldArray({
     control: form.control,
     name: "unidades",
   })
@@ -50,8 +53,7 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
     type_currency: "",
     tipoCambio: 0
   });
-  
-  
+
 
 
   useEffect(() => {
@@ -60,19 +62,19 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
     const typeCurrencyChanged = prev.type_currency !== type_currency;
     const tipoCambioChanged = prev.tipoCambio !== tipoCambio;
   
-    // ✅ Si el cambio de tipoCambio se debe SOLO al cambio de moneda, lo ignoramos
+    // Si el cambio de tipoCambio se debe SOLO al cambio de moneda, lo ignoramos
     if (tipoCambioChanged && typeCurrencyChanged) {
       // No recalcular en este caso
       prevValuesRef.current = { type_currency, tipoCambio };
       return;
     }
   
-    // ✅ Si realmente cambió el tipo de cambio (desde un input manual), sí recalculamos
+    // Si realmente cambió el tipo de cambio (desde un input manual), sí recalculamos
     if (tipoCambioChanged) {
       recalculateValues();
     }
   
-    // ✅ Si solo cambió la moneda SIN tocar tipoCambio, NO recalculamos
+    // Si solo cambió la moneda SIN tocar tipoCambio, NO recalculamos
     prevValuesRef.current = { type_currency, tipoCambio };
   }, [type_currency, tipoCambio]);
 
@@ -83,7 +85,7 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
       const valueSoles = unidad.unit_soles;
       const valueDollars = unidad.unit_dollars;
   
-      // 👉 Si escribiste en SOLES (base PEN)
+      // Si escribiste en SOLES (base PEN)
       if (type_currency === "PEN" && valueSoles) {
         const igv_soles = +(valueSoles * 0.18).toFixed(2);
         const subtotal_soles = +(valueSoles + igv_soles).toFixed(2);
@@ -99,29 +101,92 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
   
       // 👉 Si escribiste en DÓLARES (base USD)
       if (type_currency === "USD" && valueSoles) {
-        const igv_dollars = +(valueDollars * 0.18).toFixed(2);
-        const subtotal_dollars = +(valueDollars + igv_dollars).toFixed(2);
+        const igv_dollars = +(valueDollars! * 0.18).toFixed(2);
+        const subtotal_dollars = +(valueDollars! + igv_dollars).toFixed(2);
         form.setValue(`unidades.${index}.unit_igv_dollars`, igv_dollars);
         form.setValue(`unidades.${index}.unit_subtotal_dollars`, subtotal_dollars);
   
         // ✅ Solo convertir a soles, NO sobreescribir dólares
         if (tipoCambio) {
-          const unit_soles = +(valueDollars * tipoCambio).toFixed(2);
+          const unit_soles = +(valueDollars! * tipoCambio).toFixed(2);
           form.setValue(`unidades.${index}.unit_soles`, unit_soles);
         }
       }
     });
   }
-  
 
   function onSubmit(values: FormValues) {
     console.log(values)
+    values.unidades.forEach(async (value, index) => {
+      if (value.id == null) {
+        try {
+          const result = await request(
+            ENDPOINTS.cotizacion.equipos.unidades.create(n_cot),
+            { body: value }
+          )
+    
+          form.setValue(`unidades.${index}.id`, result.data.id)
+          console.log("ID guardado:", result.data.id)
+    
+        } catch (err) {
+          console.error(err)
+        }
+      } else {
+        try {
+          const result = await request(
+            ENDPOINTS.cotizacion.equipos.unidades.update(n_cot, value.id),
+            { body: value }
+          )
+          console.log("ID guardado:", result.data.id)
+    
+        } catch (err) {
+          console.error(err)
+        }
+      }
+    })
+    
+  }
+
+  const [data, setData] = useState([])
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await request(ENDPOINTS.cotizacion.equipos.unidades.list(n_cot))
+        console.log(result.data)
+        setData(result.data)
+        form.reset({unidades: result.data})
+        
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchData()
+  }, [request])
+  
+
+  function onError(errors: FieldErrors<FormValues>) {
+    console.log(errors)
+  }
+
+  function deleteUnidad(id: number | null, index: number) {
+    if(id == null) return null
+    console.log(id)
+    async function fetchData() {
+      try {
+        const result = await request(ENDPOINTS.cotizacion.equipos.unidades.delete(n_cot, id))
+        console.log(result.data)
+        remove(index)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchData()
   }
 
   return (
     <div className="w-min overflow-x-auto">
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <Form {...form} >
+      <form id="unidades-form" onSubmit={form.handleSubmit(onSubmit, onError)}  className="space-y-4">
         <table className="text-sm table-auto mt-5">
           <thead>
             <tr>
@@ -230,7 +295,7 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
                 </td>}
 
                 <td className="p-2">
-                  <Button type="button" variant="destructive" onClick={() => remove(index)}>
+                  <Button type="button" variant="destructive" onClick={() => { deleteUnidad(form.getValues(`unidades.${index}.id`) || null, index)}}>
                     <Trash size={16}/>
                   </Button>
                 </td>
@@ -239,7 +304,7 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
           </tbody>
         </table>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 flex-col items-end">
         <Button
           type="button"
           onClick={() =>
@@ -248,8 +313,83 @@ export default function UnidadesForm({type_currency, showExchange, tipoCambio}: 
         >
           + Unidad
         </Button>
+        <span><b>Subtotal: </b> 
+          {type_currency === "PEN" || showExchange ? (
+            <>
+              S/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_soles || 0), 0)
+              }
+            </>
+          ) : null}
 
-        <Button type="submit">Guardar</Button>
+          {(type_currency === "USD" || showExchange) && (type_currency === "PEN" || showExchange) && " | "}
+
+          {type_currency === "USD" || showExchange ? (
+            <>
+              $/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_dollars || 0), 0)
+              }
+            </>
+          ) : null}
+        </span>
+
+        <span><b>IGV: </b> 
+          {type_currency === "PEN" || showExchange ? (
+            <>
+              S/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_igv_soles || 0), 0)
+              }
+            </>
+          ) : null}
+
+          {(type_currency === "USD" || showExchange) && (type_currency === "PEN" || showExchange) && " | "}
+
+          {type_currency === "USD" || showExchange ? (
+            <>
+              $/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_igv_dollars || 0), 0)
+              }
+            </>
+          ) : null}
+        </span>
+
+        <span><b>Total: </b> 
+          {type_currency === "PEN" || showExchange ? (
+            <>
+              S/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_subtotal_soles || 0), 0)
+              }
+            </>
+          ) : null}
+
+          {(type_currency === "USD" || showExchange) && (type_currency === "PEN" || showExchange) && " | "}
+
+          {type_currency === "USD" || showExchange ? (
+            <>
+              $/
+              {
+                form
+                  .getValues("unidades")
+                  .reduce((acc, unidad) => acc + (unidad.unit_subtotal_dollars || 0), 0)
+              }
+            </>
+          ) : null}
+        </span>
         </div>
       </form>
     </Form>

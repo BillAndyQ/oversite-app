@@ -42,11 +42,13 @@ import { DataTableViewOptions } from "./data-table-view-options"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  children?: React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  children,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -108,6 +110,7 @@ export function DataTable<TData, TValue>({
         className="max-w-sm"
       />
         <DataTableViewOptions table={table} />
+      {children}
       </div>
     <div className="overflow-hidden rounded-md border">
       <Table>
