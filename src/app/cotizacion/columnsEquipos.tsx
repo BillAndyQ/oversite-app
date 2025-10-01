@@ -15,7 +15,8 @@ export type OT_Equipos = {
   total_igv_dollars: number;
   type_currency: string;
   exchange_rate: number;
-  status : string
+  status : string;
+  certifier : string;
 }
 
 export const columnsEquipos: ColumnDef<OT_Equipos>[] = [
@@ -35,6 +36,7 @@ export const columnsEquipos: ColumnDef<OT_Equipos>[] = [
   createColumn("type_currency", "Tipo Moneda"),
   createColumn("exchange_rate", "Tipo Cambio"),
   createColumn("status", "Estado"),
+  createColumn("certifier", "Certificador"),
   // {
   //   accessorKey: "amount",
   //   header: ({ column }) => (

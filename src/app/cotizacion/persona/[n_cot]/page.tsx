@@ -16,10 +16,10 @@ import { CardTitle } from "@/components/ui/card"
 import { FieldsSelectData } from "@/app/components/form/fields-select-data"
 import { TypeCurrency } from "@/app/enums/type-currency"
 import { FieldNumber } from "@/app/components/form/field-number"
-import UnidadesForm from "./table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import Certifiers from "@/app/enums/certifiers"
+import { FieldText } from "@/app/components/form/field-text"
 
 interface TipoCambio {
     fecha: string
@@ -55,7 +55,7 @@ export default function Page() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await request(ENDPOINTS.cotizacion.equipos.get(n_cot as string))
+        const result = await request(ENDPOINTS.cotizacion.personas.get(n_cot as string))
         console.log(result.data)
         setData(result.data)
         setTipoCambioForm(Number(result.data.exchange_rate))
@@ -103,7 +103,7 @@ export default function Page() {
   function updateData(values: FormValues) {
     async function fetchData() {
         try {
-        const result = await request(ENDPOINTS.cotizacion.equipos.update(n_cot as string), {
+        const result = await request(ENDPOINTS.cotizacion.personas.update(n_cot as string), {
             body: values,
         })
         setData(result.data)
@@ -150,7 +150,9 @@ export default function Page() {
     <Form {...form}>
       <CardTitle className="mb-6 text-lg">N° Cotización: {n_cot}</CardTitle>
       <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
+        
       <FieldSelectEnum name="certifier" label="Certificador" enumObject={Certifiers}/>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
         <FieldsSelectData
           keys={["enterprise", "ruc"]}
@@ -161,14 +163,18 @@ export default function Page() {
           <FieldSelectEnum name="status" label="Estado" enumObject={Status}/>
           <FieldSelectEnum name="type_currency" label="Moneda" enumObject={TypeCurrency} onChange={(value) => {
             setTypeCurrency(value)
-            form.setValue("exchange_rate", value === "PEN" ? Number(dataTiposCambios.venta) : Number(dataTiposCambios.compra))
-            setTipoCambioForm(value === "PEN" ? Number(dataTiposCambios.venta) : Number(dataTiposCambios.compra))
+            form.setValue("exchange_rate", value === "PEN" ? dataTiposCambios.venta : dataTiposCambios.compra)
+            setTipoCambioForm(value === "PEN" ? dataTiposCambios.venta : dataTiposCambios.compra)
           }}/>
           <FieldNumber name="exchange_rate" label="Tipo Cambio" onChange={(value) => {
             setTipoCambioForm(Number(value))
           }}/>
         </div>
-      
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+        <FieldText name="names" label="Nombres"/>
+        <FieldText name="last_names" label="Apellidos"/>
+        <FieldText name="dni" label="DNI"/>
       </div>
       <div className="flex items-center gap-3 p-0 m-0 mb-4">
         <Button
@@ -193,19 +199,18 @@ export default function Page() {
         </Button>
           <span className="text-xs">{dataTiposCambios.fecha} | Venta: {dataTiposCambios.venta} | Compra: {dataTiposCambios.compra}</span>
       </div>
-      <div className="flex items-center gap-3">
-      <Checkbox
-        id="showExchange"
-        checked={showExchange}
-        onCheckedChange={(checked) => setShowExchange(!!checked)}
-      />
-
+      <div className="flex items-center gap-3 mb-3">
+        <Checkbox
+          id="showExchange"
+          checked={showExchange}
+          onCheckedChange={(checked) => setShowExchange(!!checked)}
+        />
         <Label htmlFor="showExchange">Ver montos convertidos</Label>
       </div>
-        
+          
       </form>
     </Form>
-        <UnidadesForm 
+        {/* <UnidadesForm 
         type_currency={type_currency} 
         setTotalSoles={setTotal_soles} 
         setTotalDollars={setTotal_dollars} 
@@ -215,7 +220,7 @@ export default function Page() {
         setSubtotalDollars={setSubtotal_dollars} 
         tipoCambio={tipoCambioForm} 
         n_cot={n_cot as string} 
-        showExchange={showExchange}/>
+        showExchange={showExchange}/> */}
         <Button type="submit" onClick={()=>{
           handleSubmit(onSubmit)();
           handleSubmitFromParent()
