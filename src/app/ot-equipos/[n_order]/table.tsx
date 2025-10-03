@@ -35,8 +35,8 @@ const defValuesCell = { id: null, service_type: "", unit_type: "", unit_soles: N
 type FormValues = z.infer<typeof schema>
 
 export default function UnidadesForm(
-  {type_currency, setTotalSoles, setTotalDollars, setTotalIgvSoles, setTotalIgvDollars, setSubtotalSoles, setSubtotalDollars, showExchange, tipoCambio, n_cot}: 
-  {type_currency: string, setTotalSoles: (total: number) => void, setTotalDollars: (total: number) => void, setTotalIgvSoles: (total: number) => void, setTotalIgvDollars: (total: number) => void, setSubtotalSoles: (total: number) => void, setSubtotalDollars: (total: number) => void, showExchange: boolean, tipoCambio: number, n_cot: string}) {
+  {type_currency, setTotalSoles, setTotalDollars, setTotalIgvSoles, setTotalIgvDollars, setSubtotalSoles, setSubtotalDollars, showExchange, tipoCambio, n_order}: 
+  {type_currency: string, setTotalSoles: (total: number) => void, setTotalDollars: (total: number) => void, setTotalIgvSoles: (total: number) => void, setTotalIgvDollars: (total: number) => void, setSubtotalSoles: (total: number) => void, setSubtotalDollars: (total: number) => void, showExchange: boolean, tipoCambio: number, n_order: string}) {
     const {request} = useApiClient()
   
   const form = useForm<FormValues>({
@@ -125,7 +125,7 @@ export default function UnidadesForm(
       if (value.id == null) {
         try {
           const result = await request(
-            ENDPOINTS.cotizacion.equipos.unidades.create(n_cot),
+            ENDPOINTS.otequipos.unidades.create(n_order),
             { body: value }
           )
     
@@ -138,7 +138,7 @@ export default function UnidadesForm(
       } else {
         try {
           const result = await request(
-            ENDPOINTS.cotizacion.equipos.unidades.update(n_cot, value.id),
+            ENDPOINTS.otequipos.unidades.update(n_order, value.id),
             { body: value }
           )
           console.log("ID guardado:", result.data.id)
@@ -155,7 +155,7 @@ export default function UnidadesForm(
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await request(ENDPOINTS.cotizacion.equipos.unidades.list(n_cot))
+        const result = await request(ENDPOINTS.otequipos.unidades.list(n_order))
         console.log(result.data)
         setData(result.data)
         form.reset({unidades: result.data})
@@ -177,7 +177,7 @@ export default function UnidadesForm(
     console.log(id)
     async function fetchData() {
       try {
-        const result = await request(ENDPOINTS.cotizacion.equipos.unidades.delete(n_cot, id))
+        const result = await request(ENDPOINTS.otequipos.unidades.delete(n_order, id))
         console.log(result.data)
         remove(index)
       } catch (err) {
@@ -229,6 +229,31 @@ export default function UnidadesForm(
   
   }, [watchUnidades, tipoCambio, type_currency]);
   
+
+  const unidades = watchUnidades || [];
+  const subtotalUnidadesSoles = unidades
+    .reduce((acc, unidad) => acc + (unidad?.unit_soles || 0), 0)
+    .toFixed(2);
+
+  const subtotalUnidadesDollars = unidades
+    .reduce((acc, unidad) => acc + (unidad?.unit_dollars || 0), 0)
+    .toFixed(2);
+
+  const igvUnidadesSoles = unidades
+    .reduce((acc, unidad) => acc + (unidad?.unit_igv_soles || 0), 0)
+    .toFixed(2);
+
+  const igvUnidadesDollars = unidades
+    .reduce((acc, unidad) => acc + (unidad?.unit_igv_dollars || 0), 0)
+    .toFixed(2);
+
+  const totalUnidadesSoles = unidades.reduce(
+    (acc, unidad) => acc + (unidad?.unit_subtotal_soles || 0),
+    0
+  ).toFixed(2);
+
+  const totalUnidadesDollars = unidades.reduce((acc, unidad) => acc + (unidad?.unit_subtotal_dollars || 0), 0).toFixed(2);
+
 
   return (
     <div className="w-min overflow-x-auto">
@@ -364,11 +389,7 @@ export default function UnidadesForm(
           {type_currency === "PEN" || showExchange ? (
             <>
               S/
-              {
-                form
-                  .getValues("unidades")
-                  .reduce((acc, unidad) => acc + (unidad.unit_soles || 0), 0).toFixed(2)
-              }
+              {subtotalUnidadesSoles}
             </>
           ) : null}
 
@@ -377,11 +398,7 @@ export default function UnidadesForm(
           {type_currency === "USD" || showExchange ? (
             <>
               $/
-              {
-                form
-                  .getValues("unidades")
-                  .reduce((acc, unidad) => acc + (unidad.unit_dollars || 0), 0)
-              }
+              {subtotalUnidadesDollars}
             </>
           ) : null}
         </span>
@@ -390,11 +407,7 @@ export default function UnidadesForm(
           {type_currency === "PEN" || showExchange ? (
             <>
               S/
-              {
-                form
-                  .getValues("unidades")
-                  .reduce((acc, unidad) => acc + (unidad.unit_igv_soles || 0), 0).toFixed(2)
-              }
+              {igvUnidadesSoles}
             </>
           ) : null}
 
@@ -403,11 +416,7 @@ export default function UnidadesForm(
           {type_currency === "USD" || showExchange ? (
             <>
               $/
-              {
-                form
-                  .getValues("unidades")
-                  .reduce((acc, unidad) => acc + (unidad.unit_igv_dollars || 0), 0).toFixed(2)
-              }
+              {igvUnidadesDollars}
             </>
           ) : null}
         </span>
@@ -416,7 +425,7 @@ export default function UnidadesForm(
           <b>Total: </b>
           {type_currency === "PEN" || showExchange ? (
             <>
-              S/ {watchUnidades.reduce((acc, u) => acc + (u.unit_subtotal_soles || 0), 0).toFixed(2)}
+              S/ {totalUnidadesSoles}
             </>
           ) : null}
 
@@ -426,7 +435,7 @@ export default function UnidadesForm(
 
           {type_currency === "USD" || showExchange ? (
             <>
-              $/ {watchUnidades.reduce((acc, u) => acc + (u.unit_subtotal_dollars || 0), 0).toFixed(2)}
+              $/ {totalUnidadesDollars}
             </>
           ) : null}
         </span>

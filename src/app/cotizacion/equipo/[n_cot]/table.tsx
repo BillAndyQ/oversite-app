@@ -30,7 +30,7 @@ const schema = z.object({
   ),
 })
 
-const defValuesCell = { id: null, service_type: "", unit_type: "", unit_soles: NaN, unit_dollars: NaN, unit_igv_soles: NaN, unit_igv_dollars: NaN, unit_subtotal_soles: NaN, unit_subtotal_dollars: NaN }
+const defValuesCell = { id: null, service_type: "", unit_type: "", unit_soles: null, unit_dollars: null, unit_igv_soles: null, unit_igv_dollars: null, unit_subtotal_soles: null, unit_subtotal_dollars: null }
 
 type FormValues = z.infer<typeof schema>
 
@@ -120,15 +120,16 @@ export default function UnidadesForm(
   }
 
   function onSubmit(values: FormValues) {
-    console.log(values)
+    console.log("values",values)
     values.unidades.forEach(async (value, index) => {
       if (value.id == null) {
+        console.log("Creando unidad")
         try {
           const result = await request(
             ENDPOINTS.cotizacion.equipos.unidades.create(n_cot),
             { body: value }
           )
-    
+          
           form.setValue(`unidades.${index}.id`, result.data.id)
           console.log("ID guardado:", result.data.id)
     
@@ -136,6 +137,7 @@ export default function UnidadesForm(
           console.error(err)
         }
       } else {
+        console.log("Actualizando unidad")
         try {
           const result = await request(
             ENDPOINTS.cotizacion.equipos.unidades.update(n_cot, value.id),

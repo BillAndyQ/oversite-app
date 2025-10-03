@@ -214,7 +214,7 @@ export default function Page() {
         setSubtotalSoles={setSubtotal_soles} 
         setSubtotalDollars={setSubtotal_dollars} 
         tipoCambio={tipoCambioForm} 
-        n_cot={n_order as string}
+        n_order={n_order as string}
         showExchange={showExchange}/>
         <Button type="submit" onClick={()=>{
           handleSubmit(onSubmit)();

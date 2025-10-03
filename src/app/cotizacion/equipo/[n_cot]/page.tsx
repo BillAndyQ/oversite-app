@@ -33,6 +33,7 @@ export default function Page() {
   const [empresas, setEmpresas] = useState<Record<string, any>[]>([])
   const params = useParams()
   const n_cot = params.n_cot
+  const [n_order, setN_order] = useState("")
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -66,6 +67,7 @@ export default function Page() {
         if(result.data.type_currency != null) {
           setTypeCurrency(result.data.type_currency)
         }
+        setN_order(result.data.n_order)
       } catch (err) {
         console.error(err)
       }
@@ -144,11 +146,26 @@ export default function Page() {
   const [subtotal_soles, setSubtotal_soles] = useState(0)
   const [subtotal_dollars, setSubtotal_dollars] = useState(0)
   
+
+  async function generateOT() {
+    try{
+      const result = await request(ENDPOINTS.cotizacion.equipos.generate_ot(n_cot as string))
+      console.log(result.data)
+    }catch(err){
+      console.error(err)
+    }
+  }
   
   return (
     <div>
     <Form {...form}>
-      <CardTitle className="mb-6 text-lg">N° Cotización: {n_cot}</CardTitle>
+      <div className="flex mb-6 justify-between">
+        <div>
+        <span className="text-lg"><b>N° Cotización: {n_cot}</b> </span><br />
+        {n_order && <span className="text-lg"><b>N° OT: </b> {n_order}</span>}
+        </div>
+        <Button type="button" variant="outline" onClick={generateOT}>Generar OT</Button>
+      </div>
       <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-8">
       <FieldSelectEnum name="certifier" label="Certificador" enumObject={Certifiers}/>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">

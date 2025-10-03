@@ -163,8 +163,8 @@ export default function Page() {
           <FieldSelectEnum name="status" label="Estado" enumObject={Status}/>
           <FieldSelectEnum name="type_currency" label="Moneda" enumObject={TypeCurrency} onChange={(value) => {
             setTypeCurrency(value)
-            form.setValue("exchange_rate", value === "PEN" ? dataTiposCambios.venta : dataTiposCambios.compra)
-            setTipoCambioForm(value === "PEN" ? dataTiposCambios.venta : dataTiposCambios.compra)
+            form.setValue("exchange_rate", value === "PEN" ? Number(dataTiposCambios.venta) : Number(dataTiposCambios.compra))
+            setTipoCambioForm(value === "PEN" ? Number(dataTiposCambios.venta) : Number(dataTiposCambios.compra))
           }}/>
           <FieldNumber name="exchange_rate" label="Tipo Cambio" onChange={(value) => {
             setTipoCambioForm(Number(value))

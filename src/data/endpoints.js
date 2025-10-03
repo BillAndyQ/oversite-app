@@ -9,6 +9,13 @@ export const ENDPOINTS = {
         logout: {method: "POST", url: '/auth/logout'},
     },
     otequipos: {
+        unidades: {
+            list: (n_order = "") => ({method: "GET", url: `/ot-equipo/${n_order}/unidad`}),
+            create: (n_order = "") => ({method: "POST", url: `/ot-equipo/${n_order}/unidad`}),
+            get: (n_order = "", id) => ({method: "GET", url: `/ot-equipo/${n_order}/unidad/${id}`}),
+            update: (n_order = "", id) => ({method: "PATCH", url: `/ot-equipo/${n_order}/unidad/${id}`}),
+            delete: (n_order = "", id) => ({method: "DELETE", url: `/ot-equipo/${n_order}/unidad/${id}`}),
+        },
         list: {method: "GET", url: '/ot-equipo'},
         create: {method: "POST", url: '/ot-equipo'},
         get: (n_order = "") => ({method: "GET", url: `/ot-equipo/${n_order}`}),
@@ -39,6 +46,7 @@ export const ENDPOINTS = {
     },
     cotizacion: {
         equipos: {
+            generate_ot: (n_cot = "") => ({method: "POST", url: `/quotation/equipo/${n_cot}/generate-ot`}),
             list: {method: "GET", url: '/quotation/equipo'},
             create: {method: "POST", url: '/quotation/equipo'},
             get: (n_cot = "") => ({method: "GET", url: `/quotation/equipo/${n_cot}`}),
